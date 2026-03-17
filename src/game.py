@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
+from collections import defaultdict
 
 from board import Board
 from player import Player
@@ -13,7 +14,7 @@ class GameConfig:
     
 @dataclass(frozen=True)
 class GameResult:
-    winner: str
+    ranking: List[Tuple[int, List[str]]]
     cash_by_player: Dict[str, int]
     position_by_player: Dict[str, str]
     turns_played: int
@@ -76,15 +77,21 @@ class Game:
 
             turn_index += 1
 
+        groups = defaultdict(list)
+
+        for p in self.players:
+            groups[p.cash].append(p.name)
+
+        ranking = sorted(groups.items(), reverse=True)
+
         turns_played = turn_index + 1
-        winner = max(self.players, key=lambda player: player.cash).name
         cash_by_player = {player.name: player.cash for player in self.players}
         position_by_player = {
             player.name: self.board.space_at(player.position).name for player in self.players
         }
 
         return GameResult(
-            winner=winner,
+            ranking=ranking,
             cash_by_player=cash_by_player,
             position_by_player=position_by_player,
             turns_played=turns_played,
