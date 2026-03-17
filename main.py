@@ -1,6 +1,20 @@
 import argparse
+import json
+from typing import Dict, List
+from src.board import load_board
+from src.game import Game, GameConfig
 
 DEFAULT_PLAYER_ORDER = ["Peter", "Billy", "Charlotte", "Sweedal"]
+
+def load_rolls(rolls_path: str) -> List[int]:
+	with open(rolls_path) as f:
+		rolls = json.load(f)
+		
+	if not isinstance(rolls, list):
+		raise ValueError(f"Rolls file '{rolls_path}' must be a list.")
+	if any((not isinstance(roll, int) or roll <= 0) for roll in rolls):
+		raise ValueError(f"Rolls file '{rolls_path}' must contain positive integer rolls only.")
+	return rolls
 
 def parse_args() -> argparse.Namespace:
 	parser = argparse.ArgumentParser(description="Simulate deterministic Woven Monopoly games.")
@@ -25,6 +39,18 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
 	args = parse_args()
-
+	players = args.players
+	
+	config = GameConfig(
+		player_names=players,
+		starting_money=args.start_money,
+		pass_go_reward=args.pass_go,
+	)
+	
+	for roll_path in args.rolls:
+		board = load_board(args.board)
+		game = Game(board=board, config=config)
+		rolls = load_rolls(roll_path)
+		
 if __name__ == "__main__":
 	main()
