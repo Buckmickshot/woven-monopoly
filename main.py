@@ -27,13 +27,58 @@ def result_to_dict(result: GameResult) -> Dict[str, object]:
 
     return game_result_dict
 
+def ordinal(n: int) -> str:
+    if 4 <= n % 100 <= 20:
+        suffix = "th"
+    else:
+        suffix = {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    return f"{n}{suffix}"
+
+def print_ranking(result: GameResult) -> None:
+    print("Ranking:")
+
+    rank_pos = 1
+    for cash, players in result.ranking:
+        label = ordinal(rank_pos)
+        names = ", ".join(players)
+
+        if len(players) > 1:
+            print(f"{label} (tie): {names} (${cash})")
+        else:
+            print(f"{label}: {names} (${cash})")
+
+        rank_pos += len(players)
+
+def compute_winner(result: GameResult) -> Dict[str, object]:
+    _, top_players = result.ranking[0]
+
+    if len(top_players) == 1:
+        return {
+            "winner": top_players[0],
+            "is_draw": False,
+            "draw_players": [],
+        }
+    else:
+        return {
+            "winner": "draw",
+            "is_draw": True,
+            "draw_players": top_players,
+            "draw_count": len(top_players),
+        }
+
 def print_text_results(roll_path: str, result: GameResult) -> None:
     print(f"Game: {roll_path}")
     print(f"Turns played: {result.turns_played}")
 
-    print("Ranking:")
-    for cash, players in result.ranking:
-        print(f"- ${cash}: {', '.join(players)}")
+    # winner
+    winner_info = compute_winner(result)
+    if winner_info["is_draw"]:
+        names = ", ".join(winner_info["draw_players"])
+        print(f"Result: {winner_info['draw_count']}-way draw between {names}")
+    else:
+        print(f"Winner: {winner_info['winner']}")
+
+    print_ranking(result)
 
     print("Final money:")
     for player_name, cash in result.cash_by_player.items():
