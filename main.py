@@ -35,7 +35,7 @@ def ordinal(n: int) -> str:
     return f"{n}{suffix}"
 
 def print_ranking(result: GameResult) -> None:
-    print("Ranking:")
+    print("\nRanking:")
 
     rank_pos = 1
     for cash, players in result.ranking:
@@ -80,16 +80,16 @@ def print_text_results(roll_path: str, result: GameResult) -> None:
 
     print_ranking(result)
 
-    print("Final money:")
+    print("\nFinal money:")
     for player_name, cash in result.cash_by_player.items():
         print(f"- {player_name}: ${cash}")
 
-    print("Final positions:")
+    print("\nFinal positions:")
     for player_name, position in result.position_by_player.items():
         print(f"- {player_name}: {position}")
 
     if result.turn_log:
-        print("Turn log:")
+        print("\nTurn log:")
         for entry in result.turn_log:
             print(f"- {entry}")
 
@@ -133,18 +133,23 @@ def main() -> None:
         game = Game(board=board, config=config)
         rolls = load_rolls(roll_path)
         
-        result = game.play(rolls=rolls)
+        result = game.play(rolls=rolls, include_turn_log=args.print_turn_log)
         all_results[roll_path] = result
 
         if args.format == "text":
             print_text_results(roll_path=roll_path, result=result)
     
     if args.format == "json":
-        if args.output:
-            with open(args.output, "w") as f:
-                json.dump(all_results, f, indent=2)
+        output = {
+            roll_path: result_to_dict(result)
+            for roll_path, result in all_results.items()
+        }
+
+        if args.output_file:
+            with open(args.output_file, "w") as f:
+                json.dump(output, f, indent=2)
         else:
-            print(json.dumps(all_results, indent=2))
+            print(json.dumps(output, indent=2))
             
 if __name__ == "__main__":
     main()
