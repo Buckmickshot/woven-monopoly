@@ -25,7 +25,7 @@ class Property(Tile):
     def base_rent(self) -> int:
         return self.price
 
-    def land(self, player: Player, game: Game) -> None:
+    def land(self, player: Player, game: Game) -> Optional[str]:
         """Handle logic when a player lands on this property."""
 
         # Case 1 — unowned → must buy
@@ -33,6 +33,8 @@ class Property(Tile):
             player.debit(self.price)
             self.owner = player
             player.owned_property_indexes.add(player.position)
+            
+            return(f"       {player.name} landed on {self.name} which has no owner and bought it for ${self.price}")
 
         # Case 2 — owned by someone else → pay rent
         elif self.owner != player:
@@ -44,5 +46,7 @@ class Property(Tile):
 
             player.debit(rent)
             owner.credit(rent)
+
+            return(f"       {player.name} landed on {self.name}, which is owned by {owner.name}. {player.name} paid ${rent} in rent to {owner.name}.")
 
         # Case 3 — owned by self → do nothing
