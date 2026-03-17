@@ -87,7 +87,9 @@ class Game:
             raise ValueError("Rolls must be positive integers.")
 
         turn_index = 0
+        turns_played = 0
         while turn_index < len(rolls):
+            turns_played += 1
             current_player = self.players[turn_index % len(self.players)]
             roll = rolls[turn_index]
             start_position = current_player.position
@@ -99,7 +101,7 @@ class Game:
 
             if include_turn_log:
                 turn_log.append(
-                    f"Turn {turn_index + 1}: {current_player.name} moved {roll} spaces from {start_tile.name}."
+                    f"Turn {turns_played}: {current_player.name} moved {roll} spaces from {start_tile.name}."
                 )
 
             if passed_go:
@@ -131,7 +133,6 @@ class Game:
 
         ranking.sort(reverse=True)
 
-        turns_played = turn_index + 1
         cash_by_player = {player.name: player.cash for player in self.players}
         position_by_player = {
             player.name: self.board.space_at(player.position).name for player in self.players

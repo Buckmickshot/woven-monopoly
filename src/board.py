@@ -50,10 +50,16 @@ def _validate_space(raw_space: Dict[str, Any], index: int) -> Tile:
 
     if not isinstance(name, str) or not name.strip():
         raise ValueError(f"Space at index {index} has invalid 'name'.")
+    if not isinstance(space_type, str) or not space_type.strip():
+        raise ValueError(f"Space at index {index} has invalid 'type'.")
 
     if space_type == "property":
         price = _require_space_field(raw_space, "price", index)
         colour = _require_space_field(raw_space, "colour", index)
+        if not isinstance(price, int) or price <= 0:
+            raise ValueError(f"Property '{name}' must have a positive integer price.")
+        if not isinstance(colour, str) or not colour.strip():
+            raise ValueError(f"Property '{name}' must have a non-empty colour.")
 
         return Property(name=name, price=price, colour=colour)
 
