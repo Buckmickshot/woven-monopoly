@@ -4,8 +4,8 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from player import Player
-    from game import Game
+    from src.player import Player
+    from src.game import Game
 
 
 @dataclass

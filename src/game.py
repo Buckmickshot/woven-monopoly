@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 from collections import defaultdict
 
-from board import Board
-from player import Player
+from src.board import Board
+from src.player import Player
 
 @dataclass(frozen=True)
 class GameConfig:
@@ -98,7 +98,7 @@ class Game:
             turn_log=turn_log if include_turn_log else None,
         )
     
-    def owner_has_colour_set(self, owner: Player, colour: str) -> bool:
+    def owns_full_colour_set(self, owner: Player, colour: str) -> bool:
         colour_indexes = self.property_indexes_by_colour.get(colour, [])
         return bool(colour_indexes) and all(
             index in owner.owned_property_indexes

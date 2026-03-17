@@ -1,12 +1,12 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
-from tiles import Tile
+from src.tiles import Tile
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from player import Player
-    from game import Game
+    from src.player import Player
+    from src.game import Game
 
 
 @dataclass

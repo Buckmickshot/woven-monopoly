@@ -1,8 +1,8 @@
 import json
 from dataclasses import dataclass
 from typing import Any, Dict, List
-from property import Property
-from tiles import GoTile, Tile
+from src.property import Property
+from src.tiles import GoTile, Tile
 
 @dataclass(frozen=True)
 class Board:
