@@ -97,3 +97,10 @@ class Game:
             turns_played=turns_played,
             turn_log=turn_log if include_turn_log else None,
         )
+    
+    def owner_has_colour_set(self, owner: Player, colour: str) -> bool:
+        colour_indexes = self.property_indexes_by_colour.get(colour, [])
+        return bool(colour_indexes) and all(
+            index in owner.owned_property_indexes
+            for index in colour_indexes
+        )

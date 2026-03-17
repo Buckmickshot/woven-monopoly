@@ -50,3 +50,4 @@ class Property(Tile):
             return(f"       {player.name} landed on {self.name}, which is owned by {owner.name}. {player.name} paid ${rent} in rent to {owner.name}.")
 
         # Case 3 — owned by self → do nothing
+        return None
