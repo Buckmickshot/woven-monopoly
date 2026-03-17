@@ -7,24 +7,24 @@ from src.tiles import GoTile, Tile
 @dataclass(frozen=True)
 class Board:
     """Immutable representation of the game board."""
-    spaces: List[Tile]
+    tiles: List[Tile]
 
     def __post_init__(self) -> None:
-        if not self.spaces:
+        if not self.tiles:
             raise ValueError("Board must contain at least one space.")
 
     def __len__(self) -> int:
-        return len(self.spaces)
+        return len(self.tiles)
 
     def space_at(self, index: int) -> Tile:
         """Returns the tile at a given index, wrapping around the board."""
-        return self.spaces[index % len(self.spaces)]
+        return self.tiles[index % len(self.tiles)]
 
     def property_indexes_by_colour(self) -> Dict[str, List[int]]:
         """Groups property indexes by colour."""
         result: Dict[str, List[int]] = {}
 
-        for index, space in enumerate(self.spaces):
+        for index, space in enumerate(self.tiles):
             if not isinstance(space, Property):
                 continue
 
@@ -70,17 +70,17 @@ def load_board(board_path: str) -> Board:
         raw_content = json.load(f)
 
     if not isinstance(raw_content, list):
-        raise ValueError("Board JSON must be an array of spaces.")
+        raise ValueError("Board JSON must be an array of tiles.")
 
-    spaces = [
+    tiles = [
         _validate_space(raw_space, index)
         for index, raw_space in enumerate(raw_content)
     ]
 
-    if not spaces:
+    if not tiles:
         raise ValueError("Board must not be empty.")
 
-    if not isinstance(spaces[0], GoTile):
+    if not isinstance(tiles[0], GoTile):
         raise ValueError("First board space must be GO.")
 
-    return Board(spaces=spaces)
+    return Board(tiles=tiles)

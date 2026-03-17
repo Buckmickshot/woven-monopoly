@@ -7,6 +7,11 @@ from src.game import Game, GameConfig, GameResult
 DEFAULT_PLAYER_ORDER = ["Peter", "Billy", "Charlotte", "Sweedal"]
 
 def load_rolls(rolls_path: str) -> List[int]:
+    """
+    Loads and validates a sequence of dice rolls from a JSON file.
+
+    The file must contain a list of positive integers.
+    """
     with open(rolls_path) as f:
         rolls = json.load(f)
         
@@ -39,6 +44,8 @@ def print_ranking(result: GameResult) -> None:
         rank_pos += len(players)
 
 def compute_winner(result: GameResult) -> Dict[str, object]:
+    """Determines winner or draw information from ranking."""
+
     _, top_players = result.ranking[0]
 
     if len(top_players) == 1:
@@ -56,6 +63,8 @@ def compute_winner(result: GameResult) -> Dict[str, object]:
         }
     
 def result_to_dict(result: GameResult) -> Dict[str, object]:
+    """Converts a GameResult into a JSON-serialisable dictionary."""
+
     winner_info = compute_winner(result)
 
     # build structured ranking
@@ -85,6 +94,11 @@ def result_to_dict(result: GameResult) -> Dict[str, object]:
     }
 
 def print_text_results(roll_path: str, result: GameResult) -> None:
+    """
+    Prints a human-readable summary of a game result,
+    including winner/draw, ranking, final money, positions, and optional turn log.
+    """
+        
     print(f"Game: {roll_path}")
     print(f"Turns played: {result.turns_played}")
 
@@ -114,6 +128,9 @@ def print_text_results(roll_path: str, result: GameResult) -> None:
     print()
 
 def parse_args() -> argparse.Namespace:
+    """
+    Parses command-line arguments for configuring game execution.
+    """
     parser = argparse.ArgumentParser(description="Simulate deterministic Woven Monopoly games.")
     parser.add_argument("--board", default="board.json", help="Path to board JSON file.")
     parser.add_argument(
@@ -132,10 +149,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pass-go", type=int, default=1, help="Amount received when passing GO.")
     parser.add_argument("--print-turn-log", action="store_true", help="Include per-turn decision log.")
     parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format.")
-    parser.add_argument("--output-file", help="Path to output file for JSON results (required if --format=json).")
+    parser.add_argument("--output-file", help="Path to output file for JSON results.")
     return parser.parse_args()
 
 def main() -> None:
+    """
+    Entry point for running simulations.
+
+    Parses arguments, runs one or more games, and outputs results
+    in either text or JSON format.
+    """
     args = parse_args()
     players = args.players
     
