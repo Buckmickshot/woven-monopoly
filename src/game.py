@@ -82,7 +82,11 @@ class Game:
         for p in self.players:
             groups[p.cash].append(p.name)
 
-        ranking = sorted(groups.items(), reverse=True)
+        ranking = []
+        for cash, names in groups.items():
+            ranking.append((cash, sorted(names)))
+
+        ranking.sort(reverse=True)
 
         turns_played = turn_index + 1
         cash_by_player = {player.name: player.cash for player in self.players}

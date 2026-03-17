@@ -16,17 +16,6 @@ def load_rolls(rolls_path: str) -> List[int]:
         raise ValueError(f"Rolls file '{rolls_path}' must contain positive integer rolls only.")
     return rolls
 
-def result_to_dict(result: GameResult) -> Dict[str, object]:
-    game_result_dict: Dict[str, object] = {
-        "ranking": result.ranking,
-        "cash_by_player": result.cash_by_player,
-        "position_by_player": result.position_by_player,
-        "turns_played": result.turns_played,
-        "turn_log": result.turn_log,
-    }
-
-    return game_result_dict
-
 def ordinal(n: int) -> str:
     if 4 <= n % 100 <= 20:
         suffix = "th"
@@ -65,6 +54,35 @@ def compute_winner(result: GameResult) -> Dict[str, object]:
             "draw_players": top_players,
             "draw_count": len(top_players),
         }
+    
+def result_to_dict(result: GameResult) -> Dict[str, object]:
+    winner_info = compute_winner(result)
+
+    # build structured ranking
+    ranking_output = []
+    rank_pos = 1
+
+    for cash, players in result.ranking:
+        entry = {
+            "rank": ordinal(rank_pos),
+            "cash": cash,
+            "players": players,
+            "is_tie": len(players) > 1,
+        }
+        ranking_output.append(entry)
+        rank_pos += len(players)
+
+    return {
+        "winner": winner_info["winner"],
+        "is_draw": winner_info["is_draw"],
+        "draw_players": winner_info.get("draw_players", []),
+        "draw_count": winner_info.get("draw_count", 0),
+        "ranking": ranking_output,
+        "cash_by_player": result.cash_by_player,
+        "position_by_player": result.position_by_player,
+        "turns_played": result.turns_played,
+        "turn_log": result.turn_log,
+    }
 
 def print_text_results(roll_path: str, result: GameResult) -> None:
     print(f"Game: {roll_path}")
