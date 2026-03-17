@@ -114,6 +114,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pass-go", type=int, default=1, help="Amount received when passing GO.")
     parser.add_argument("--print-turn-log", action="store_true", help="Include per-turn decision log.")
     parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format.")
+    parser.add_argument("--output-file", help="Path to output file for JSON results (required if --format=json).")
     return parser.parse_args()
 
 def main() -> None:
@@ -137,6 +138,13 @@ def main() -> None:
 
         if args.format == "text":
             print_text_results(roll_path=roll_path, result=result)
+    
+    if args.format == "json":
+        if args.output:
+            with open(args.output, "w") as f:
+                json.dump(all_results, f, indent=2)
+        else:
+            print(json.dumps(all_results, indent=2))
             
 if __name__ == "__main__":
     main()
