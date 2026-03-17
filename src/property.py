@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from src.player import Player
     from src.game import Game
 
+INDENT = "       "
 
 @dataclass
 class Property(Tile):
@@ -34,7 +35,7 @@ class Property(Tile):
             self.owner = player
             player.owned_property_indexes.add(player.position)
             
-            return(f"       {player.name} landed on {self.name} which has no owner and bought it for ${self.price}")
+            return(f"{INDENT}{player.name} landed on {self.name} which has no owner and bought it for ${self.price}")
 
         # Case 2 — owned by someone else → pay rent
         elif self.owner != player:
@@ -47,7 +48,7 @@ class Property(Tile):
             player.debit(rent)
             owner.credit(rent)
 
-            return(f"       {player.name} landed on {self.name}, which is owned by {owner.name}. {player.name} paid ${rent} in rent to {owner.name}.")
+            return(f"{INDENT}{player.name} landed on {self.name}, which is owned by {owner.name}. {player.name} paid ${rent} in rent to {owner.name}.")
 
         # Case 3 — owned by self → do nothing
-        return None
+        return f"{INDENT}{player.name} landed on {self.name}, which they own."

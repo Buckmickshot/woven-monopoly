@@ -5,6 +5,8 @@ from collections import defaultdict
 from src.board import Board
 from src.player import Player
 
+INDENT = "       "
+
 @dataclass(frozen=True)
 class GameConfig:
     """
@@ -108,12 +110,21 @@ class Game:
                 current_player.credit(self.config.pass_go_reward)
                 if include_turn_log:
                     turn_log.append(
-                        f"      {current_player.name} passed GO, receiving ${self.config.pass_go_reward}."
+                        f"{INDENT}{current_player.name} passed GO, receiving ${self.config.pass_go_reward}."
                     )
-
+            
             landing_tile_msg = landed_tile.land(current_player, self)
             if landing_tile_msg and include_turn_log:
                 turn_log.append(landing_tile_msg)
+
+            owned_tiles = [
+                self.board.space_at(tile).name
+                for tile in sorted(current_player.owned_property_indexes)
+            ]
+            if include_turn_log:
+                turn_log.append(
+                    f"{INDENT}{current_player.name} now has ${current_player.cash} and owns {', '.join(owned_tiles) or 'nothing'}"
+                )
 
             if self.config.stop_on_bankruptcy and any(player.is_bankrupt for player in self.players):
                 break

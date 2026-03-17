@@ -7,6 +7,7 @@ if TYPE_CHECKING:
     from src.player import Player
     from src.game import Game
 
+INDENT = "       "
 
 @dataclass
 class Tile(ABC):
@@ -25,4 +26,4 @@ class GoTile(Tile):
     """Represents the GO tile."""
 
     def land(self, player: Player, game: Game) -> Optional[str]:
-        return None
+        return f"{INDENT}{player.name} landed on GO."
