@@ -11,7 +11,7 @@ from src.tiles import GoTile
 class GameRulesTests(unittest.TestCase):
     def test_players_move_in_correct_order(self) -> None:
         """Players must take turns in the exact input order."""
-        board = Board(spaces=[GoTile(name="GO"), Property(name="A", price=1, colour="Brown"), Property(name="B", price=1, colour="Brown")])
+        board = Board(tiles=[GoTile(name="GO"), Property(name="A", price=1, colour="Brown"), Property(name="B", price=1, colour="Brown")])
 
         game = Game(
             board=board,
@@ -27,7 +27,7 @@ class GameRulesTests(unittest.TestCase):
 
     def test_turn_order_wraps_correctly(self) -> None:
         """Turn order should wrap around to the first player."""
-        board = Board(spaces=[GoTile(name="GO"), Property(name="A", price=1, colour="Brown")])
+        board = Board(tiles=[GoTile(name="GO"), Property(name="A", price=1, colour="Brown")])
         game = Game(
             board=board,
             config=GameConfig(player_names=["P1", "P2"], starting_money=10),
@@ -40,7 +40,7 @@ class GameRulesTests(unittest.TestCase):
 
     def test_default_starting_money_is_16(self) -> None:
         """Players should start with $16 by default."""
-        board = Board(spaces=[GoTile(name="GO")])
+        board = Board(tiles=[GoTile(name="GO")])
         game = Game(
             board=board,
             config=GameConfig(player_names=["P1", "P2"]),
@@ -51,7 +51,7 @@ class GameRulesTests(unittest.TestCase):
 
     def test_players_start_on_go_tile(self) -> None:
         """All players should start at position 0 (GO)."""
-        board = Board(spaces=[GoTile(name="GO"), Property(name="A", price=1, colour="Brown")])
+        board = Board(tiles=[GoTile(name="GO"), Property(name="A", price=1, colour="Brown")])
         game = Game(
             board=board,
             config=GameConfig(player_names=["P1", "P2"]),
@@ -61,7 +61,20 @@ class GameRulesTests(unittest.TestCase):
             self.assertEqual(player.position, 0)
 
         # Also check GO tile explicitly
-        self.assertEqual(board.space_at(0).name, "GO")
+        self.assertEqual(board.tile_at(0).name, "GO")
+
+    def test_landing_on_go_awards_default_amount_1(self) -> None:
+        """Landing on GO should award the default amount which is 1, but only once."""
+        board = Board(tiles=[GoTile(name="GO"), Property(name="A", price=1, colour="Brown")])
+        game = Game(
+            board=board,
+            config=GameConfig(player_names=["P1"], starting_money=10),
+        )
+
+        # Turn 1: buy A for 1. Turn 2: land on GO (+1).
+        game.play([1, 1])
+
+        self.assertEqual(game.players[0].cash, 10)
 
     def test_landing_on_go_awards_configured_amount(self) -> None:
         """Landing on GO should award the configured amount, but only once."""
@@ -88,7 +101,20 @@ class GameRulesTests(unittest.TestCase):
         game.play([1, 2])
 
         self.assertEqual(game.players[0].cash, 11)
-        
+    
+    def test_no_rent_on_own_property(self) -> None:
+        """Player should not pay rent when landing on their own property."""
+        board = Board(tiles=[GoTile(name="GO"), Property(name="A", price=2, colour="Brown")])
+        game = Game(
+            board=board,
+            config=GameConfig(player_names=["P1"], starting_money=10),
+        )
+
+        game.play([1, 2])  # buy, pass Go, then land again
+
+        self.assertEqual(game.players[0].cash, 9)  # only paid once
+        self.assertEqual(game.players[0].position, 1)  # landed on A
+
     def test_must_buy_when_landing_on_unowned_property(self) -> None:
         """Player must buy an unowned property when they land on it."""
         board = Board(tiles=[GoTile(name="GO"), Property(name="A", price=3, colour="Brown")])
@@ -97,7 +123,7 @@ class GameRulesTests(unittest.TestCase):
         result = game.play([1])
 
         player = game.players[0]
-        landed_property = board.space_at(1)
+        landed_property = board.tile_at(1)
         self.assertEqual(player.cash, 7)
         self.assertIs(landed_property.owner, player)
         self.assertEqual(result.position_by_player["P1"], "A")
@@ -135,6 +161,46 @@ class GameRulesTests(unittest.TestCase):
 
         self.assertEqual(game.players[0].cash, 11)
         self.assertEqual(game.players[1].cash, 7)
+
+    def test_game_stops_on_first_bankruptcy(self) -> None:
+        """Game stops on first player bankruptcy."""
+        board = Board(tiles=[GoTile(name="GO"), Property(name="A", price=2, colour="Brown")])
+        game = Game(
+            board=board,
+            config=GameConfig(player_names=["P1", "P2"], starting_money=1, pass_go_reward=0),
+        )
+
+        # P1 buys A for 2, P1 goes bankrupt (-1).
+        result = game.play([1, 1, 1, 1])
+
+        self.assertEqual(result.turns_played, 1)
+        self.assertEqual(result.cash_by_player["P1"], -1)
+
+    def test_board_wraps_around(self) -> None:
+        """Last tile wraps around to the first tile."""
+        board = Board(tiles=[GoTile(name="GO"), Property(name="A", price=2, colour="Brown")])
+        game = Game(
+            board=board,
+            config=GameConfig(player_names=["P1"], starting_money=10, pass_go_reward=0),
+        )
+
+        # P1 buys A for 2, P1 wraps around to starting tile (GO).
+        _ = game.play([1, 1])
+
+        self.assertEqual(game.players[0].position, 0)
+    
+    def test_multiple_go_passes(self) -> None:
+        """Passing GO multiple times in one move should award each time it is passed."""
+        board = Board(tiles=[GoTile(name="GO"), Property(name="A", price=1, colour="Brown")])
+        game = Game(
+            board=board,
+            config=GameConfig(player_names=["P1"], starting_money=10, pass_go_reward=2),
+        )
+
+        hi = game.play([5], True)  # board size = 2 → wraps multiple times
+        
+        # Should get +2 for each time GO is passed
+        self.assertEqual(game.players[0].cash, 13)
 
 if __name__ == "__main__":
     unittest.main()
