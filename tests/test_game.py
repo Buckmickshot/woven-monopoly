@@ -202,5 +202,82 @@ class GameRulesTests(unittest.TestCase):
         # Should get +2 for each time GO is passed
         self.assertEqual(game.players[0].cash, 13)
 
+    def test_ranking_tie_sorted_alphabetically(self) -> None:
+        """Players with equal cash should be sorted alphabetically within ranking."""
+        board = Board(tiles=[GoTile(name="GO")])
+        game = Game(
+            board=board,
+            config=GameConfig(player_names=["B", "A"], starting_money=10),
+        )
+
+        # P1 and P2 loop back to starting tile (GO).
+        result = game.play([1, 1])
+
+        # Same cash → names sorted
+        self.assertEqual(result.ranking[0][1], ["A", "B"])
+
+class IntegrationTests(unittest.TestCase):
+    def test_simple_game_with_non_distinct_ranking(self) -> None:
+        """Simple game where players end with non-distinct cash values."""
+        board = load_board("tests/board_test_1.json")
+        rolls = load_rolls("tests/rolls_test_1.json")
+
+        game = Game(
+            board=board,
+            config=GameConfig(player_names=["P1", "P2", "P3", "P4"], starting_money=10, pass_go_reward=0),
+        )
+
+        result = game.play(rolls)
+
+        self.assertEqual(result.cash_by_player, {
+            "P1": 8,  # +2 -2
+            "P2": 6,
+            "P3": 12,
+            "P4": 8,
+        })
+
+        self.assertEqual(result.ranking, [
+            (12, ["P3"]),
+            (8, ["P1", "P4"]),
+            (6, ["P2"]),
+        ])
+
+        self.assertEqual(result.position_by_player, {
+            "P1": "B",
+            "P2": "B",
+            "P3": "B",
+            "P4": "C",
+        })
+
+    def test_simple_game_with_double_rent(self) -> None:
+        """Game where players own all properties of same colour."""
+        board = load_board("tests/board_test_2.json")
+        rolls = load_rolls("tests/rolls_test_2.json")
+
+        game = Game(
+            board=board,
+            config=GameConfig(player_names=["P1", "P2", "P3"], starting_money=10, pass_go_reward=0),
+        )
+
+        result = game.play(rolls)
+
+        self.assertEqual(result.cash_by_player, {
+            "P1": 8,
+            "P2": 16,
+            "P3": 2,
+        })
+
+        self.assertEqual(result.ranking, [
+            (16, ["P2"]),
+            (8, ["P1"]),
+            (2, ["P3"]),
+        ])
+
+        self.assertEqual(result.position_by_player, {
+            "P1": "B",
+            "P2": "GO",
+            "P3": "B",
+        })
+
 if __name__ == "__main__":
     unittest.main()

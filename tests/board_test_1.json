@@ -1,0 +1,24 @@
+[
+  {
+    "name": "GO",
+    "type": "go"
+  },
+  {
+    "name": "A",
+    "price": 2,
+    "colour": "Brown",
+    "type": "property"
+  },
+  {
+    "name": "B",
+    "price": 2,
+    "colour": "Brown",
+    "type": "property"
+  },
+  {
+    "name": "C",
+    "price": 2,
+    "colour": "Brown",
+    "type": "property"
+  }
+]
