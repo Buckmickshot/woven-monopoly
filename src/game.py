@@ -97,7 +97,7 @@ class Game:
             start_position = current_player.position
             start_tile = self.board.tile_at(start_position)
 
-            passed_go = current_player.move(steps=roll, board_size=len(self.board))
+            go_passes = current_player.move(steps=roll, board_size=len(self.board))
             landed_index = current_player.position
             landed_tile = self.board.tile_at(landed_index)
 
@@ -106,11 +106,12 @@ class Game:
                     f"Turn {turns_played}: {current_player.name} moved {roll} spaces from {start_tile.name}."
                 )
 
-            if passed_go:
-                current_player.credit(self.config.pass_go_reward)
+            if go_passes > 0:
+                reward = go_passes * self.config.pass_go_reward
+                current_player.credit(reward)
                 if include_turn_log:
                     turn_log.append(
-                        f"{INDENT}{current_player.name} passed GO, receiving ${self.config.pass_go_reward}."
+                        f"{INDENT}{current_player.name} passed GO {go_passes} time(s), receiving ${reward}."
                     )
             
             landing_tile_msg = landed_tile.land(current_player, self)
