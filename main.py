@@ -135,8 +135,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--board", default="data/board.json", help="Path to board JSON file.")
     parser.add_argument(
         "--rolls",
+        required=True,
         action="append",
-        default=["data/rolls_1.json"],
         help="Path to a rolls JSON file. Provide this flag multiple times to run multiple games.",
     )
     parser.add_argument(
@@ -167,7 +167,7 @@ def main() -> None:
         starting_money=args.start_money,
         pass_go_reward=args.pass_go,
     )
-    
+
     all_results: Dict[str, GameResult] = {}
     for roll_path in args.rolls:
         board = load_board(args.board)
