@@ -95,11 +95,11 @@ class Game:
             current_player = self.players[turn_index % len(self.players)]
             roll = rolls[turn_index]
             start_position = current_player.position
-            start_tile = self.board.space_at(start_position)
+            start_tile = self.board.tile_at(start_position)
 
             passed_go = current_player.move(steps=roll, board_size=len(self.board))
             landed_index = current_player.position
-            landed_tile = self.board.space_at(landed_index)
+            landed_tile = self.board.tile_at(landed_index)
 
             if include_turn_log:
                 turn_log.append(
@@ -118,7 +118,7 @@ class Game:
                 turn_log.append(landing_tile_msg)
 
             owned_tiles = [
-                self.board.space_at(tile).name
+                self.board.tile_at(tile).name
                 for tile in sorted(current_player.owned_property_indexes)
             ]
             if include_turn_log:
@@ -146,7 +146,7 @@ class Game:
 
         cash_by_player = {player.name: player.cash for player in self.players}
         position_by_player = {
-            player.name: self.board.space_at(player.position).name for player in self.players
+            player.name: self.board.tile_at(player.position).name for player in self.players
         }
 
         return GameResult(

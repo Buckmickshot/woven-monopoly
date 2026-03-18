@@ -11,12 +11,12 @@ class Board:
 
     def __post_init__(self) -> None:
         if not self.tiles:
-            raise ValueError("Board must contain at least one space.")
+            raise ValueError("Board must contain at least one tile.")
 
     def __len__(self) -> int:
         return len(self.tiles)
 
-    def space_at(self, index: int) -> Tile:
+    def tile_at(self, index: int) -> Tile:
         """Returns the tile at a given index, wrapping around the board."""
         return self.tiles[index % len(self.tiles)]
 
@@ -24,38 +24,37 @@ class Board:
         """Groups property indexes by colour."""
         result: Dict[str, List[int]] = {}
 
-        for index, space in enumerate(self.tiles):
-            if not isinstance(space, Property):
+        for index, tile in enumerate(self.tiles):
+            if not isinstance(tile, Property):
                 continue
 
-            result.setdefault(space.colour, []).append(index)
-
+            result.setdefault(tile.colour, []).append(index)
         return result
     
-def _require_space_field(raw_space: Dict[str, Any], field_name: str, index: int) -> Any:
-    """Ensures a required field exists in the raw JSON space."""
+def _require_tile_field(raw_tile: Dict[str, Any], field_name: str, index: int) -> Any:
+    """Ensures a required field exists in the raw JSON tile."""
 
-    if field_name not in raw_space:
-        raise ValueError(f"Space at index {index} is missing required field '{field_name}'.")
-    return raw_space[field_name]
+    if field_name not in raw_tile:
+        raise ValueError(f"Tile at index {index} is missing required field '{field_name}'.")
+    return raw_tile[field_name]
     
-def _validate_space(raw_space: Dict[str, Any], index: int) -> Tile:
-    """Validates and converts a raw JSON space into a Tile object."""
+def _validate_tile(raw_tile: Dict[str, Any], index: int) -> Tile:
+    """Validates and converts a raw JSON tile into a Tile object."""
 
-    if not isinstance(raw_space, dict):
-        raise ValueError(f"Space at index {index} must be an object.")
+    if not isinstance(raw_tile, dict):
+        raise ValueError(f"Tile at index {index} must be an object.")
 
-    name = _require_space_field(raw_space, "name", index)
-    space_type = _require_space_field(raw_space, "type", index)
+    name = _require_tile_field(raw_tile, "name", index)
+    tile_type = _require_tile_field(raw_tile, "type", index)
 
     if not isinstance(name, str) or not name.strip():
-        raise ValueError(f"Space at index {index} has invalid 'name'.")
-    if not isinstance(space_type, str) or not space_type.strip():
-        raise ValueError(f"Space at index {index} has invalid 'type'.")
+        raise ValueError(f"Tile at index {index} has invalid 'name'.")
+    if not isinstance(tile_type, str) or not tile_type.strip():
+        raise ValueError(f"Tile at index {index} has invalid 'type'.")
 
-    if space_type == "property":
-        price = _require_space_field(raw_space, "price", index)
-        colour = _require_space_field(raw_space, "colour", index)
+    if tile_type == "property":
+        price = _require_tile_field(raw_tile, "price", index)
+        colour = _require_tile_field(raw_tile, "colour", index)
         if not isinstance(price, int) or price <= 0:
             raise ValueError(f"Property '{name}' must have a positive integer price.")
         if not isinstance(colour, str) or not colour.strip():
@@ -63,7 +62,7 @@ def _validate_space(raw_space: Dict[str, Any], index: int) -> Tile:
 
         return Property(name=name, price=price, colour=colour)
 
-    elif space_type == "go":
+    elif tile_type == "go":
         return GoTile(name=name)
 
     else:
@@ -79,14 +78,14 @@ def load_board(board_path: str) -> Board:
         raise ValueError("Board JSON must be an array of tiles.")
 
     tiles = [
-        _validate_space(raw_space, index)
-        for index, raw_space in enumerate(raw_content)
+        _validate_tile(raw_tile, index)
+        for index, raw_tile in enumerate(raw_content)
     ]
 
     if not tiles:
         raise ValueError("Board must not be empty.")
 
     if not isinstance(tiles[0], GoTile):
-        raise ValueError("First board space must be GO.")
+        raise ValueError("First board tile must be GO.")
 
     return Board(tiles=tiles)
