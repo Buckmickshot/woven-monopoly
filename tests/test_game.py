@@ -1,12 +1,97 @@
 import unittest
+import json
+import tempfile
+from pathlib import Path
 
-
-from main import load_rolls
+from main import load_rolls, result_to_dict
 from src.board import Board, load_board
 from src.game import Game, GameConfig
 from src.property import Property
 from src.tiles import GoTile
 
+class TestInputOutput(unittest.TestCase):
+
+    @staticmethod
+    def write_json(path, data):
+        with open(path, "w") as f:
+            json.dump(data, f)
+
+    def test_load_rolls_valid_and_invalid(self):
+        """Only allow loading of rolls from a json that contains a list of non-negative integers."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+
+            # valid rolls file
+            good = tmp_path / "good_rolls.json"
+            self.write_json(good, [1, 2, 3])
+            self.assertEqual(load_rolls(str(good)), [1, 2, 3])
+
+            # invalid rolls file: not a list
+            bad_type = tmp_path / "bad_type.json"
+            self.write_json(bad_type, {"not": "a list"})
+            with self.assertRaises(ValueError):
+                load_rolls(str(bad_type))
+
+            # invalid values in rolls file: non-positive integers
+            bad_values = tmp_path / "bad_values.json"
+            self.write_json(bad_values, [1, -2, "x"])
+            with self.assertRaises(ValueError):
+                load_rolls(str(bad_values))
+
+    def test_load_board_valid_and_invalid(self):
+        """Only allow loading of boards from a json that contains a list of valid dicts representing tiles."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+
+            # valid minimal board
+            good = tmp_path / "good_board.json"
+            self.write_json(good, [{"name": "GO", "type": "go"}])
+            board = load_board(str(good))
+            self.assertIsInstance(board, Board)
+            self.assertEqual(board.tile_at(0).name, "GO")
+
+            # invalid board file: not a list
+            bad1 = tmp_path / "bad_board_1.json"
+            self.write_json(bad1, {"name": "GO"})
+            with self.assertRaises(ValueError):
+                load_board(str(bad1))
+
+            # first tile not GO
+            bad2 = tmp_path / "bad_board_2.json"
+            self.write_json(bad2, [
+                {"name": "NotGO", "type": "property", "price": 1, "colour": "C"}
+            ])
+            with self.assertRaises(ValueError):
+                load_board(str(bad2))
+
+    def test_result_to_dict_structure(self):
+        """Ensure result_to_dict output has expected structure."""
+        # simple board
+        board = Board(tiles=[
+            GoTile(name="GO"),
+            Property(name="A", price=1, colour="Brown")
+        ])
+
+        game = Game(
+            board=board,
+            config=GameConfig(player_names=["P1", "P2"], starting_money=5, pass_go_reward=0)
+        )
+
+        result = game.play([1, 1])
+        out = result_to_dict(result)
+
+        # structure checks
+        self.assertIn("winner", out)
+        self.assertIn("ranking", out)
+        self.assertIsInstance(out["ranking"], list)
+
+        self.assertIn("cash_by_player", out)
+        self.assertIsInstance(out["cash_by_player"], dict)
+
+        self.assertIn("position_by_player", out)
+        self.assertIsInstance(out["position_by_player"], dict)
+
+        self.assertIn("turns_played", out)
 
 class GameRulesTests(unittest.TestCase):
     def test_players_move_in_correct_order(self) -> None:
