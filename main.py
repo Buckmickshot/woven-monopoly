@@ -132,11 +132,11 @@ def parse_args() -> argparse.Namespace:
     Parses command-line arguments for configuring game execution.
     """
     parser = argparse.ArgumentParser(description="Simulate deterministic Woven Monopoly games.")
-    parser.add_argument("--board", default="board.json", help="Path to board JSON file.")
+    parser.add_argument("--board", default="data/board.json", help="Path to board JSON file.")
     parser.add_argument(
         "--rolls",
         action="append",
-        required=True,
+        default=["data/rolls_1.json"],
         help="Path to a rolls JSON file. Provide this flag multiple times to run multiple games.",
     )
     parser.add_argument(
